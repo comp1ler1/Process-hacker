@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     for(DWORD i = 0; i < cProcesses; i++){
-        array[i]->getProcessName();
+        array[i]->getProcessInfo();
     }
 
     //myProcess *array = getListProcess();
@@ -55,12 +55,21 @@ MainWindow::MainWindow(QWidget *parent)
                if(stolbeu == 2){
                     item->setText(QString("%1").arg(array[stroka]->PATH));
                }
+               if(stolbeu == 3){
+                    item->setText(QString("%1").arg(array[stroka]->PIDPArent));
+               }
+               if(stolbeu == 4){
+                    item->setText(QString("%1").arg(array[stroka]->nameParent));
+               }
+               if(stolbeu == 5){
+                    item->setText(QString("%1").arg(array[stroka]->nameOwner));
+               }
                //item->setText(QString("%1_%2").arg(stroka).arg(stolbeu)); // вставляем текст
                ui->tableWidget->setItem(stroka, stolbeu, item); // вставляем ячейку
           }
 
         QStringList horzHeaders;
-        horzHeaders << "PID" << "Name" << "Path";
+        horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName";
         //ui->tableWidget->setRowCount( 3 - 1 );
         //ui->tableWidget->setColumnCount( columnHeaderList[0].size() );
         ui->tableWidget->setHorizontalHeaderLabels( horzHeaders );
