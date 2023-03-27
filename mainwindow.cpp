@@ -64,12 +64,15 @@ MainWindow::MainWindow(QWidget *parent)
                if(stolbeu == 5){
                     item->setText(QString("%1").arg(array[stroka]->nameOwner));
                }
+               if(stolbeu == 6){
+                    item->setText(QString("%1").arg(array[stroka]->SID));
+               }
                //item->setText(QString("%1_%2").arg(stroka).arg(stolbeu)); // вставляем текст
                ui->tableWidget->setItem(stroka, stolbeu, item); // вставляем ячейку
           }
 
         QStringList horzHeaders;
-        horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName";
+        horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName" << "SID";
         //ui->tableWidget->setRowCount( 3 - 1 );
         //ui->tableWidget->setColumnCount( columnHeaderList[0].size() );
         ui->tableWidget->setHorizontalHeaderLabels( horzHeaders );

@@ -6,6 +6,7 @@
 
 #include    <tlhelp32.h>
 #include <processthreadsapi.h>
+#include <sddl.h>
 #pragma comment(lib, "advapi32.lib")
 
 myProcess::myProcess()
@@ -150,6 +151,22 @@ void myProcess::getOName(){
     WnameUser[nameUserLen] = '\0';
     WnameUser[nameUserLen + 1] = '\0';
     this->nameOwner.append(WnameUser);
+
+    PSTR tempstr;
+    if(!ConvertSidToStringSidA(to->Owner, &tempstr)){
+        DWORD tem = GetLastError();
+        CloseHandle(TokenHandle);
+        CloseHandle(hProc);
+        return;
+    }
+
+    std::string ts(tempstr);
+    wchar_t WSIDUser[ts.capacity()];
+    mbstowcs(WSIDUser, ts.c_str(), ts.capacity());
+    WSIDUser[ts.size()] = '\0';
+    WSIDUser[ts.size() + 1] = '\0';
+    this->SID.append(WSIDUser);
+
 
     CloseHandle(TokenHandle);
     CloseHandle(hProc);
