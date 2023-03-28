@@ -18,15 +18,10 @@ public:
     myProcess(int newPID);
     ~myProcess();
     void setPID(DWORD PID);
-
-
-    void getName();
     void getPATH();
-    void getPPID();
-    void getPName();
     void getProcessInfo();
     void getOName();
-
+    void getX();
     myProcess& operator= (const myProcess& other);
 
     std::wstring name;
@@ -36,9 +31,7 @@ public:
     std::wstring nameOwner;
     std::wstring SID;
     std::wstring x;
-
     std::vector<std::string> DLL;
-
     int PID;
     int PIDPArent;
 };

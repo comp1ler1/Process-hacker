@@ -4,9 +4,10 @@
 #include <tchar.h>
 #include <psapi.h>
 
-#include    <tlhelp32.h>
+#include <tlhelp32.h>
 #include <processthreadsapi.h>
 #include <sddl.h>
+#include <wow64apiset.h>
 #pragma comment(lib, "advapi32.lib")
 
 myProcess::myProcess()
@@ -37,19 +38,6 @@ myProcess::myProcess(int newPID)
 }
 void myProcess::setPID(DWORD PID){
     this->PID = PID;
-
-}
-
-void myProcess::getName(){
-    HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, this->PID);
-    HMODULE hMod;
-    DWORD cbNeeded;
-    TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
-    if (EnumProcessModules(hProc, &hMod, sizeof(hMod), &cbNeeded)){
-        GetModuleBaseName(hProc, hMod, szProcessName, sizeof(szProcessName)/sizeof(TCHAR));
-        this->name.append(szProcessName);
-    }
-    CloseHandle(hProc);
 }
 
 void myProcess::getPATH(){
@@ -57,42 +45,6 @@ void myProcess::getPATH(){
     wchar_t szFilePath[MAX_PATH] = {0};
     GetModuleFileNameEx(hProc, NULL, szFilePath, MAX_PATH);
     this->PATH.append(szFilePath);
-    CloseHandle(hProc);
-}
-
-void myProcess::getPPID(){
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0 );
-    PROCESSENTRY32 pe32;
-    DWORD ppid = 0;
-
-    if( hSnapshot == INVALID_HANDLE_VALUE )
-        return;
-        ZeroMemory( &pe32, sizeof( pe32 ) );
-        pe32.dwSize = sizeof( pe32 );
-
-        if( !Process32First( hSnapshot, &pe32 ) )
-            return;
-
-        do{
-            if( pe32.th32ProcessID == this->PID ){
-                ppid = pe32.th32ParentProcessID;
-                break;
-            }
-        }while( Process32Next( hSnapshot, &pe32 ) );
-    if( hSnapshot != INVALID_HANDLE_VALUE )
-        CloseHandle( hSnapshot );
-    this->PIDPArent = ppid;
-}
-
-void myProcess::getPName(){
-    HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, this->PIDPArent);
-    HMODULE hMod;
-    DWORD cbNeeded;
-    TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
-    if (EnumProcessModules(hProc, &hMod, sizeof(hMod), &cbNeeded)){
-        GetModuleBaseName(hProc, hMod, szProcessName, sizeof(szProcessName)/sizeof(TCHAR));
-        this->nameParent.append(szProcessName);
-    }
     CloseHandle(hProc);
 }
 
@@ -105,7 +57,6 @@ void myProcess::getOName(){
 
     DWORD dwSize = 0;
     //PTOKEN_OWNER pOwnerInfo = (PTOKEN_OWNER) GlobalAlloc( GPTR, dwSize );
-    DWORD dwError;
     if (GetTokenInformation(TokenHandle, TokenOwner , NULL, NULL, &dwSize)){
         CloseHandle(TokenHandle);
         CloseHandle(hProc);
@@ -121,7 +72,6 @@ void myProcess::getOName(){
 
     if (!GetTokenInformation(TokenHandle, TokenOwner, to, dwSize, &dwSize))
        {
-           dwError = GetLastError();
            //cerr << "GetTokenInformation failed, error " << dwError;
            LocalFree(to);
            CloseHandle(TokenHandle);
@@ -137,8 +87,6 @@ void myProcess::getOName(){
 
     if (!LookupAccountSidA(NULL, to->Owner, nameUser, &nameUserLen, domainName, &domainNameLen, &snu))
     {
-        dwError = GetLastError();
-        //cerr << "LookupAccountSid failed, error " << dwError;
         LocalFree(to);
         CloseHandle(TokenHandle);
         CloseHandle(hProc);
@@ -154,7 +102,6 @@ void myProcess::getOName(){
 
     PSTR tempstr;
     if(!ConvertSidToStringSidA(to->Owner, &tempstr)){
-        DWORD tem = GetLastError();
         CloseHandle(TokenHandle);
         CloseHandle(hProc);
         return;
@@ -167,21 +114,53 @@ void myProcess::getOName(){
     WSIDUser[ts.size() + 1] = '\0';
     this->SID.append(WSIDUser);
 
-
     CloseHandle(TokenHandle);
+    CloseHandle(hProc);
+}
+
+void myProcess::getX(){
+
+    HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_READ, FALSE, this->PID);
+    if(hProc == 0)
+        return;
+
+    if(this->PID == 6088){
+        this->name.append(L"qu");
+    }
+
+    USHORT pProcessMachine, pNativeMachine;
+    BOOL result = IsWow64Process2(hProc, &pProcessMachine, &pNativeMachine);
+    IsWow64Process(hProc, &result);
+    if(pNativeMachine == 34404){
+        //x64 OS
+        if (pProcessMachine != IMAGE_FILE_MACHINE_UNKNOWN && pProcessMachine == 332){
+            this->x.append(L"x32");
+        }
+        else{
+            this->x.append(L"x64");
+        }
+    }
+    else{
+        if(pNativeMachine == 332){
+            //x32 OS
+            if (result == false){
+                this->x.append(L"x32");
+            }
+        }
+    }
+
+
     CloseHandle(hProc);
 }
 
 void myProcess::getProcessInfo(){
 
-    this->getName();
     this->getPATH();
-    this->getPPID();
-    this->getPName();
     this->getOName();
+    this->getX();
 }
 
 myProcess::~myProcess()
 {
-    DLL.clear();
+
 }
