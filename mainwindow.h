@@ -3,6 +3,15 @@
 
 #include <QMainWindow>
 
+
+#include <iostream>
+#include <vector>
+
+#include <windows.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <psapi.h>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -13,8 +22,14 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
 
+    void setValues(class myProcess **array, DWORD cProcesses);
+
+    ~MainWindow();
+private slots:
+    void update();
+signals:
+    void clicked();
 private:
     Ui::MainWindow *ui;
 };
