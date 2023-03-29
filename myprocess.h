@@ -18,10 +18,10 @@ public:
     myProcess(int newPID);
     ~myProcess();
     void setPID(DWORD PID);
-    void getPATH();
-    void getProcessInfo();
-    void getOName();
-    void getX();
+    void setPATH();
+    void setProcessInfo();
+    void setOName();
+    void setX();
     myProcess& operator= (const myProcess& other);
 
     std::wstring name;
