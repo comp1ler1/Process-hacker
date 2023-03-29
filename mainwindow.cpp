@@ -5,7 +5,7 @@
 #include "myprocess.h"
 
 #include <psapi.h>
-#include    <tlhelp32.h>
+#include <tlhelp32.h>
 #include <processthreadsapi.h>
 #include <sddl.h>
 #include <wow64apiset.h>
@@ -37,7 +37,7 @@ void setPidNamePPID(class myProcess **array, DWORD cProcesses){
         CloseHandle( hSnapshot );
 
     for(DWORD i = 0; i < cProcesses; i++){
-        array[i]->getProcessInfo();
+        array[i]->setProcessInfo();
     }
 
 }

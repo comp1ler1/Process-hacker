@@ -40,7 +40,7 @@ void myProcess::setPID(DWORD PID){
     this->PID = PID;
 }
 
-void myProcess::getPATH(){
+void myProcess::setPATH(){
     HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, this->PID);
     wchar_t szFilePath[MAX_PATH] = {0};
     GetModuleFileNameEx(hProc, NULL, szFilePath, MAX_PATH);
@@ -48,7 +48,7 @@ void myProcess::getPATH(){
     CloseHandle(hProc);
 }
 
-void myProcess::getOName(){
+void myProcess::setOName(){
 
     HANDLE hProc = OpenProcess(PROCESS_QUERY_INFORMATION, FALSE, this->PID);
 
@@ -94,6 +94,13 @@ void myProcess::getOName(){
     }
     nameUser[nameUserLen] = '\0';
 
+    wchar_t Wdomain[domainNameLen + 1];
+    mbstowcs(Wdomain, domainName, domainNameLen);
+    Wdomain[domainNameLen] = '\0';
+    Wdomain[domainNameLen + 1] = '\0';
+    this->nameOwner.append(Wdomain);
+    this->nameOwner.append(L"\\");
+
     wchar_t WnameUser[nameUserLen + 1];
     mbstowcs(WnameUser, nameUser, nameUserLen);
     WnameUser[nameUserLen] = '\0';
@@ -118,15 +125,11 @@ void myProcess::getOName(){
     CloseHandle(hProc);
 }
 
-void myProcess::getX(){
+void myProcess::setX(){
 
     HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_READ, FALSE, this->PID);
     if(hProc == 0)
         return;
-
-    if(this->PID == 6088){
-        this->name.append(L"qu");
-    }
 
     USHORT pProcessMachine, pNativeMachine;
     BOOL result = IsWow64Process2(hProc, &pProcessMachine, &pNativeMachine);
@@ -153,11 +156,11 @@ void myProcess::getX(){
     CloseHandle(hProc);
 }
 
-void myProcess::getProcessInfo(){
+void myProcess::setProcessInfo(){
 
-    this->getPATH();
-    this->getOName();
-    this->getX();
+    this->setPATH();
+    this->setOName();
+    this->setX();
 }
 
 myProcess::~myProcess()
