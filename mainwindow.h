@@ -28,6 +28,11 @@ public:
     ~MainWindow();
 private slots:
     void update();
+    void on_action_2_triggered();
+
+
+    void on_action_4_triggered();
+
 signals:
     void clicked();
 private:

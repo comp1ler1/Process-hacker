@@ -33,32 +33,19 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>26</y>
-      <width>1255</width>
-      <height>581</height>
+      <y>-4</y>
+      <width>1261</width>
+      <height>591</height>
      </rect>
     </property>
     <property name="lineWidth">
      <number>3</number>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
-    <property name="geometry">
-     <rect>
-      <x>1160</x>
-      <y>0</y>
-      <width>93</width>
-      <height>29</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Обновить</string>
-    </property>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="geometry">
     <rect>
@@ -68,7 +55,32 @@
      <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Дополнительно</string>
+    </property>
+    <addaction name="action_2"/>
+    <addaction name="action_3"/>
+    <addaction name="action_4"/>
+   </widget>
+   <addaction name="menu"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="action_2">
+   <property name="text">
+    <string>Обновить</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>Информация о процессе</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>Информация о файле</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
