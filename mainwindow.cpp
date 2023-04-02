@@ -10,6 +10,8 @@
 #include <sddl.h>
 #include <wow64apiset.h>
 
+#include <myFile.h>
+
 void setPidNamePPID(class myProcess **array, DWORD cProcesses){
 
     DWORD now = 0;
@@ -128,8 +130,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setHorizontalHeaderLabels( horzHeaders );
 
     //Установка прерывания для кнопки обновления
-    QPushButton *upd = ui->pushButton;
-    connect(upd, SIGNAL(clicked()), this, SLOT(update()));
 
     for(DWORD i = 0; i < cProcesses; i++){
         delete array[i];
@@ -140,3 +140,16 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_action_2_triggered()
+{
+    update();
+}
+
+void MainWindow::on_action_4_triggered()
+{
+    myFile newFileObj;
+    newFileObj.setModal(true);
+    newFileObj.exec();
+}
+
