@@ -377,16 +377,6 @@ void myFile::on_lineEdit_returnPressed()
 
     ui->listWidget->clear();
 
-   /*
-    bRes = LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &PrivilegeRequired);
-    if( !bRes) return;
-
-    bRes = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES | TOKEN_ALL_ACCESS, &hToken);
-    if(!bRes) er = GetLastError();
-
-    BOOL rec = SetPrivilege(hToken, SE_SECURITY_NAME, TRUE);
-*/
-    //this->ui->listWidget->clear();
     er = mySetPriv(TRUE);
     HeapFree(GetProcessHeap(), 0, pBuffer);
 
@@ -421,9 +411,15 @@ void myFile::on_lineEdit_returnPressed()
         er = GetLastError();
     }
 
+
     for(int i = 0; i < pcCountOfExplicitEntries; i++){
 
         EXPLICIT_ACCESS_A nyt = pListOfExplicitEntries[i];
+
+        /*if(i == 0){
+            BOOL delsacl = DeleteAce(SACL, 1);
+            delsacl = DeleteAce(SACL, 2);
+        }*/
 
         std::string tempus, temtempus;
         tempus.append(pListOfExplicitEntries[i].Trustee.ptstrName);
@@ -665,4 +661,87 @@ void myFile::on_comboBox_currentTextChanged(const QString &arg1)
     this->ui->label_2->setText(out);
     return;
 }
+
+void myFile::on_pushButton_2_clicked()
+{
+    DWORD dwRtnCode = 0;
+    PSID pSidOwner = NULL;
+    BOOL bRtnBool = TRUE;
+    LPTSTR AcctName = NULL;
+    LPTSTR DomainName = NULL;
+    DWORD dwAcctName = 1, dwDomainName = 1;
+    SID_NAME_USE eUse = SidTypeUnknown;
+    HANDLE hFile;
+    PSECURITY_DESCRIPTOR pSD = NULL;
+
+    LUID PrivilegeRequired ;
+    DWORD iCount = 0;
+    DWORD  dwLen = 0;
+    BOOL bRes = FALSE;
+    HANDLE hToken = NULL;
+    BYTE *pBuffer = NULL;
+    LPVOID myPBuffer = NULL;
+    TOKEN_PRIVILEGES* pPrivs = NULL;
+
+    DWORD row = this->ui->listWidget->currentRow();
+    if(row > this->ui->listWidget->count()){
+        return;
+    }
+
+
+    DWORD er = 0;
+    BOOL rec = false;
+
+
+    er = mySetPriv(TRUE);
+    HeapFree(GetProcessHeap(), 0, pBuffer);
+
+    this->getUsers();
+
+    QString path;
+    path = this->ui->lineEdit->text();
+    std::wstring stringPath(path.toStdWString());
+    hFile = CreateFile( stringPath.c_str(), GENERIC_READ | ACCESS_SYSTEM_SECURITY , FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+    if (hFile == INVALID_HANDLE_VALUE) {
+        er = GetLastError();
+              return;
+    }
+    PACL SACL = NULL;
+    dwRtnCode = GetSecurityInfo(
+                      hFile,
+                      SE_FILE_OBJECT,
+                      OWNER_SECURITY_INFORMATION | SACL_SECURITY_INFORMATION,
+                      &pSidOwner,
+                      NULL,
+                      NULL,
+                      &SACL,
+                      &pSD);
+    if(dwRtnCode != ERROR_SUCCESS){
+        return;
+    }
+
+    ULONG             pcCountOfExplicitEntries = NULL;
+    EXPLICIT_ACCESS_A *pListOfExplicitEntries = NULL;
+    if(GetExplicitEntriesFromAclA(SACL, &pcCountOfExplicitEntries, &pListOfExplicitEntries) != ERROR_SUCCESS){
+        er = GetLastError();
+    }
+
+
+    wchar_t *array;
+    array = (wchar_t*)malloc(stringPath.capacity() * sizeof(wchar_t));
+    memcpy(array, stringPath.c_str(), stringPath.size() * sizeof(wchar_t));
+    array[stringPath.size()] = '\0';
+
+    BOOL delsacl = DeleteAce(SACL, row);
+    SE_OBJECT_TYPE ObjectType = SE_FILE_OBJECT;
+    er = SetNamedSecurityInfo(array, ObjectType,
+          SACL_SECURITY_INFORMATION,
+          NULL, NULL, NULL, SACL);
+
+    er = mySetPriv(FALSE);
+    CloseHandle(hToken);
+    CloseHandle(hFile);
+}
+
 
