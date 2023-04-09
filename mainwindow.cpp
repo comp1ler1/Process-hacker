@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "infoProcess.cpp"
+//#include "infoProcess.cpp"
 #include "myprocess.h"
 
 #include <psapi.h>
@@ -126,7 +126,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     QStringList horzHeaders;
-    horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName" << "SID" << "x32/x64";
+    horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName" << "SID" << "x32/x64" << "Environment" << "DEP/ASLR" << "DLL" << "AddInfo";
     ui->tableWidget->setHorizontalHeaderLabels( horzHeaders );
 
     //Установка прерывания для кнопки обновления
