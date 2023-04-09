@@ -78,6 +78,18 @@ void MainWindow::setValues(class myProcess **array, DWORD cProcesses)
            if(stolbeu == 7){
                 item->setText(QString("%1").arg(array[stroka]->x));
            }
+           if(stolbeu == 8){
+                item->setText(QString("%1").arg(array[stroka]->env));
+           }
+           if(stolbeu == 9){
+                item->setText(QString("%1").arg(array[stroka]->y));
+           }
+           if(stolbeu == 10){
+                item->setText(QString("%1").arg(array[stroka]->infDLL));
+           }
+           if(stolbeu == 11){
+                item->setText(QString("%1").arg(array[stroka]->addInfo));
+           }
            ui->tableWidget->setItem(stroka, stolbeu, item); // вставляем ячейку
       }
 }

@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <psapi.h>
+#define _WIN32_WINNT 0x0501
 
 using namespace std;
 
@@ -22,6 +23,8 @@ public:
     void setProcessInfo();
     void setOName();
     void setX();
+    void setY();
+    void setY2();
     myProcess& operator= (const myProcess& other);
 
     std::wstring name;
@@ -31,6 +34,10 @@ public:
     std::wstring nameOwner;
     std::wstring SID;
     std::wstring x;
+    std::wstring env;
+    std::wstring y;
+    std::wstring infDLL;
+    std::wstring addInfo;
     std::vector<std::string> DLL;
     int PID;
     int PIDPArent;

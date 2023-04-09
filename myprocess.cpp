@@ -1,6 +1,7 @@
 #include "myprocess.h"
 #include <iostream>
 #include <windows.h>
+#include <winbase.h>
 #include <tchar.h>
 #include <psapi.h>
 
@@ -27,9 +28,13 @@ myProcess& myProcess::operator= (const myProcess& other){
     this->PATH = other.PATH;
     this->SID = other.SID;
     this->x = other.x;
+    this->y = other.y;
+
 
     return *this;
 }
+
+
 
 myProcess::myProcess(int newPID)
 {
@@ -156,11 +161,55 @@ void myProcess::setX(){
     CloseHandle(hProc);
 }
 
+void myProcess::setY(){
+    HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_READ, FALSE, this->PID);
+    if(hProc == 0)
+        return;
+    // HANDLE hProcess = GetCurrentProcess();
+    DWORD flags = 0;
+    BOOL permanent = FALSE;
+    BOOL bRet = GetProcessDEPPolicy(hProc, &flags, &permanent);
+    if (bRet) {
+        if (flags == 0) {
+            this->y.append(L"DEP is disabled; "); //DEP отключен для указанного процесса
+        } else if (flags == PROCESS_DEP_ENABLE) {
+            this->y.append(L"DEP is enabled; "); //DEP включен для указанного процесса
+        } else if (flags == PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION) {
+            this->y.append(L"DEP; "); //Эмуляция преобразователя DEP-ATL отключена для указанного процесса
+        } else {
+            this->y.append(L"Unknown DEP flag; "); //cout << "Unknown DEP flag" << endl;
+        }
+    }
+
+    CloseHandle(hProc);
+}
+
+void myProcess::setY2(){
+    HMODULE hModule = GetModuleHandle(NULL);
+    DWORD dwFlags = 0;
+    BOOL bRet2 = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, NULL, &hModule);
+    if (bRet2) {
+        if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)hModule, &hModule)) {
+            if (GetProcessMitigationPolicy(GetCurrentProcess(), ProcessASLRPolicy, &dwFlags, sizeof(DWORD))) {
+                if (dwFlags == 0x00000001) {
+                    this->y.append(L"ASLR is enabled; "); //cout << "ASLR is enabled" << endl;
+                } else {
+                    this->y.append(L"ASLR is disabled; "); //cout << "ASLR is disabled" << endl;
+                }
+            } else {
+                this->y.append(L"Failed to get ASLR policy; "); //cout << "Failed to get ASLR policy" << endl;
+            }
+        }
+    }
+}
+
 void myProcess::setProcessInfo(){
 
     this->setPATH();
     this->setOName();
     this->setX();
+    this->setY();
+    this->setY2();
 }
 
 myProcess::~myProcess()
