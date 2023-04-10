@@ -23,7 +23,7 @@ myProcess& myProcess::operator= (const myProcess& other){
     this->nameParent = other.nameParent;
     this->name = other.name;
     this->nameOwner = other.nameOwner;
-    this->DLL = other.DLL;
+    this->infDLL = other.infDLL;
     this->Description = other.Description;
     this->PATH = other.PATH;
     this->SID = other.SID;
@@ -224,6 +224,29 @@ void myProcess::setEnv(){
     }
 }
 
+void myProcess::setInfDLL(){
+    HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_READ, FALSE, this->PID);
+    if (hProc) {
+        HMODULE hMods[1024];
+        DWORD cbNeeded;
+        if (EnumProcessModulesEx(hProc, hMods, sizeof(hMods), &cbNeeded, LIST_MODULES_ALL)) {
+            //Извлекает дескриптор для каждого модуля в указанном процессе
+            for (DWORD i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
+                TCHAR szModName[MAX_PATH];
+                if (GetModuleFileNameEx(hProc, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR))) {
+                    if (i == 0)
+                        continue;
+                    this->infDLL.append(szModName);
+                    this->infDLL.append(L"\n");
+                } else {
+                    this->infDLL.append(L"Failed to get name");
+                }
+            }
+        }
+        CloseHandle(hProc);
+    }
+}
+
 void myProcess::setProcessInfo(){
 
     this->setPATH();
@@ -232,6 +255,8 @@ void myProcess::setProcessInfo(){
     this->setY();
     this->setY2();
     this->setEnv();
+    this->setInfDLL();
+
 }
 
 myProcess::~myProcess()

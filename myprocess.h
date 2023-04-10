@@ -26,6 +26,7 @@ public:
     void setY();
     void setY2();
     void setEnv();
+    void setInfDLL();
     myProcess& operator= (const myProcess& other);
 
     std::wstring name;
@@ -39,7 +40,7 @@ public:
     std::wstring y;
     std::wstring infDLL;
     std::wstring addInfo;
-    std::vector<std::string> DLL;
+    //std::vector<std::string> DLL;
     int PID;
     int PIDPArent;
 };
