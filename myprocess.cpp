@@ -29,6 +29,7 @@ myProcess& myProcess::operator= (const myProcess& other){
     this->SID = other.SID;
     this->x = other.x;
     this->y = other.y;
+    this->env = other.env;
 
 
     return *this;
@@ -192,12 +193,32 @@ void myProcess::setY2(){
         if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)hModule, &hModule)) {
             if (GetProcessMitigationPolicy(GetCurrentProcess(), ProcessASLRPolicy, &dwFlags, sizeof(DWORD))) {
                 if (dwFlags == 0x00000001) {
-                    this->y.append(L"ASLR is enabled; "); //cout << "ASLR is enabled" << endl;
+                    this->y.append(L"ASLR is enabled; ");
                 } else {
-                    this->y.append(L"ASLR is disabled; "); //cout << "ASLR is disabled" << endl;
+                    this->y.append(L"ASLR is disabled; ");
                 }
             } else {
-                this->y.append(L"Failed to get ASLR policy; "); //cout << "Failed to get ASLR policy" << endl;
+                this->y.append(L"Failed to get ASLR policy; ");
+            }
+        }
+    }
+}
+
+void myProcess::setEnv(){
+    HMODULE hMod = LoadLibraryA("mscoree.dll");
+    if (!hMod) {
+        this->env.append(L"Native");
+    } else {
+        typedef HRESULT(__stdcall *GetCORSystemDirectoryPtr)(LPWSTR, DWORD, DWORD*);
+        GetCORSystemDirectoryPtr pGetCORSystemDirectory = (GetCORSystemDirectoryPtr)GetProcAddress(hMod, "GetCORSystemDirectory");
+        if (pGetCORSystemDirectory) {
+            WCHAR szBuffer[MAX_PATH];
+            DWORD dwLength = 0;
+            HRESULT hResult = pGetCORSystemDirectory(szBuffer, MAX_PATH, &dwLength);
+            if (hResult == S_OK) {
+                this->env.append(L"CLR .NET");
+            } else {
+                this->env.append(L"Failed to get CLR .NET version");
             }
         }
     }
@@ -210,6 +231,7 @@ void myProcess::setProcessInfo(){
     this->setX();
     this->setY();
     this->setY2();
+    this->setEnv();
 }
 
 myProcess::~myProcess()

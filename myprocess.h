@@ -25,6 +25,7 @@ public:
     void setX();
     void setY();
     void setY2();
+    void setEnv();
     myProcess& operator= (const myProcess& other);
 
     std::wstring name;
