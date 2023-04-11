@@ -1,6 +1,7 @@
 #include "myprocess.h"
 #include <iostream>
 #include <windows.h>
+#include <winbase.h>
 #include <tchar.h>
 #include <psapi.h>
 
@@ -22,14 +23,19 @@ myProcess& myProcess::operator= (const myProcess& other){
     this->nameParent = other.nameParent;
     this->name = other.name;
     this->nameOwner = other.nameOwner;
-    this->DLL = other.DLL;
+    this->infDLL = other.infDLL;
     this->Description = other.Description;
     this->PATH = other.PATH;
     this->SID = other.SID;
     this->x = other.x;
+    this->y = other.y;
+    this->env = other.env;
+
 
     return *this;
 }
+
+
 
 myProcess::myProcess(int newPID)
 {
@@ -156,11 +162,101 @@ void myProcess::setX(){
     CloseHandle(hProc);
 }
 
+void myProcess::setY(){
+    HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_READ, FALSE, this->PID);
+    if(hProc == 0)
+        return;
+    // HANDLE hProcess = GetCurrentProcess();
+    DWORD flags = 0;
+    BOOL permanent = FALSE;
+    BOOL bRet = GetProcessDEPPolicy(hProc, &flags, &permanent);
+    if (bRet) {
+        if (flags == 0) {
+            this->y.append(L"DEP is disabled; "); //DEP отключен для указанного процесса
+        } else if (flags == PROCESS_DEP_ENABLE) {
+            this->y.append(L"DEP is enabled; "); //DEP включен для указанного процесса
+        } else if (flags == PROCESS_DEP_DISABLE_ATL_THUNK_EMULATION) {
+            this->y.append(L"DEP; "); //Эмуляция преобразователя DEP-ATL отключена для указанного процесса
+        } else {
+            this->y.append(L"Unknown DEP flag; "); //cout << "Unknown DEP flag" << endl;
+        }
+    }
+
+    CloseHandle(hProc);
+}
+
+void myProcess::setY2(){
+    HMODULE hModule = GetModuleHandle(NULL);
+    DWORD dwFlags = 0;
+    BOOL bRet2 = GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, NULL, &hModule);
+    if (bRet2) {
+        if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)hModule, &hModule)) {
+            if (GetProcessMitigationPolicy(GetCurrentProcess(), ProcessASLRPolicy, &dwFlags, sizeof(DWORD))) {
+                if (dwFlags == 0x00000001) {
+                    this->y.append(L"ASLR is enabled; ");
+                } else {
+                    this->y.append(L"ASLR is disabled; ");
+                }
+            } else {
+                this->y.append(L"Failed to get ASLR policy; ");
+            }
+        }
+    }
+}
+
+void myProcess::setEnv(){
+    HMODULE hMod = LoadLibraryA("mscoree.dll");
+    if (!hMod) {
+        this->env.append(L"Native");
+    } else {
+        typedef HRESULT(__stdcall *GetCORSystemDirectoryPtr)(LPWSTR, DWORD, DWORD*);
+        GetCORSystemDirectoryPtr pGetCORSystemDirectory = (GetCORSystemDirectoryPtr)GetProcAddress(hMod, "GetCORSystemDirectory");
+        if (pGetCORSystemDirectory) {
+            WCHAR szBuffer[MAX_PATH];
+            DWORD dwLength = 0;
+            HRESULT hResult = pGetCORSystemDirectory(szBuffer, MAX_PATH, &dwLength);
+            if (hResult == S_OK) {
+                this->env.append(L"CLR .NET");
+            } else {
+                this->env.append(L"Failed to get CLR .NET version");
+            }
+        }
+    }
+}
+
+void myProcess::setInfDLL(){
+    HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_VM_READ, FALSE, this->PID);
+    if (hProc) {
+        HMODULE hMods[1024];
+        DWORD cbNeeded;
+        if (EnumProcessModulesEx(hProc, hMods, sizeof(hMods), &cbNeeded, LIST_MODULES_ALL)) {
+            //Извлекает дескриптор для каждого модуля в указанном процессе
+            for (DWORD i = 0; i < (cbNeeded / sizeof(HMODULE)); i++) {
+                TCHAR szModName[MAX_PATH];
+                if (GetModuleFileNameEx(hProc, hMods[i], szModName, sizeof(szModName) / sizeof(TCHAR))) {
+                    if (i == 0)
+                        continue;
+                    this->infDLL.append(szModName);
+                    this->infDLL.append(L"\n");
+                } else {
+                    this->infDLL.append(L"Failed to get name");
+                }
+            }
+        }
+        CloseHandle(hProc);
+    }
+}
+
 void myProcess::setProcessInfo(){
 
     this->setPATH();
     this->setOName();
     this->setX();
+    this->setY();
+    this->setY2();
+    this->setEnv();
+    this->setInfDLL();
+
 }
 
 myProcess::~myProcess()

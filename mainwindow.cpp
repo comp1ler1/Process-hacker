@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include "infoProcess.cpp"
+//#include "infoProcess.cpp"
 #include "myprocess.h"
 
 #include <psapi.h>
@@ -78,6 +78,18 @@ void MainWindow::setValues(class myProcess **array, DWORD cProcesses)
            if(stolbeu == 7){
                 item->setText(QString("%1").arg(array[stroka]->x));
            }
+           if(stolbeu == 8){
+                item->setText(QString("%1").arg(array[stroka]->env));
+           }
+           if(stolbeu == 9){
+                item->setText(QString("%1").arg(array[stroka]->y));
+           }
+           if(stolbeu == 10){
+                item->setText(QString("%1").arg(array[stroka]->infDLL));
+           }
+           if(stolbeu == 11){
+                item->setText(QString("%1").arg(array[stroka]->addInfo));
+           }
            ui->tableWidget->setItem(stroka, stolbeu, item); // вставляем ячейку
       }
 }
@@ -126,7 +138,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     QStringList horzHeaders;
-    horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName" << "SID" << "x32/x64";
+    horzHeaders << "PID" << "Name" << "Path" << "PPID" << "PName" << "OName" << "SID" << "x32/x64" << "Environment" << "DEP/ASLR" << "DLL" << "AddInfo";
     ui->tableWidget->setHorizontalHeaderLabels( horzHeaders );
 
     //Установка прерывания для кнопки обновления
